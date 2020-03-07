@@ -261,6 +261,139 @@ class LivecoinRates:
     def usd_to_satoshi(cls):  # pragma: no cover
         return cls.currency_to_satoshi('USD')
 
+class DogeDogeRates:
+    "https://dogedoge.com/currency/free/BCH/ALL"
+    """
+    API Documentation:
+    https://bitpay.com/api/rates#rest-api-resources-rates
+    """
+    SINGLE_RATE = 'https://dogedoge.com/currency/free/BCH/'
+
+    @classmethod
+    def currency_to_satoshi(cls, currency):
+        headers = {"x-accept-version": "2.0.0",
+                   "Accept": "application/json"}
+        r = requests.get(cls.SINGLE_RATE + currency, headers=headers)
+        r.raise_for_status()
+        rate = r.json()['rate']
+        return int(ONE / Decimal(rate) * BCH)
+
+    @classmethod
+    def usd_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('usd')
+
+    @classmethod
+    def eur_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('eur')
+
+    @classmethod
+    def gbp_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('gbp')
+
+    @classmethod
+    def jpy_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('jpy')
+
+    @classmethod
+    def cny_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('cny')
+
+    @classmethod
+    def hkd_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('hkd')
+
+    @classmethod
+    def cad_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('cad')
+
+    @classmethod
+    def aud_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('aud')
+
+    @classmethod
+    def nzd_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('nzd')
+
+    @classmethod
+    def rub_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('rub')
+
+    @classmethod
+    def brl_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('brl')
+
+    @classmethod
+    def chf_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('chf')
+
+    @classmethod
+    def sek_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('sek')
+
+    @classmethod
+    def dkk_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('dkk')
+
+    @classmethod
+    def isk_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('isk')
+
+    @classmethod
+    def pln_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('pln')
+
+    @classmethod
+    def krw_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('krw')
+
+    @classmethod
+    def twd_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('twd')
+
+    @classmethod
+    def mxn_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('mxn')
+
+    @classmethod
+    def ars_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('ars')
+
+    @classmethod
+    def cop_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('cop')
+
+    @classmethod
+    def cup_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('cup')
+
+    @classmethod
+    def pen_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('pen')
+
+    @classmethod
+    def uyu_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('uyu')
+
+    @classmethod
+    def clp_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('clp')
+
+    @classmethod
+    def sgd_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('sgd')
+
+    @classmethod
+    def thb_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('thb')
+
+    @classmethod
+    def bob_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('bob')
+
+    @classmethod
+    def dop_to_satoshi(cls):  # pragma: no cover
+        return cls.currency_to_satoshi('dop')
+
 
 class RatesAPI:
     """Each method converts exactly 1 unit of the currency to the equivalent
@@ -270,35 +403,35 @@ class RatesAPI:
                       requests.exceptions.HTTPError,
                       requests.exceptions.Timeout)
 
-    USD_RATES = [BitpayRates.usd_to_satoshi, LivecoinRates.usd_to_satoshi]
-    EUR_RATES = [BitpayRates.eur_to_satoshi]
-    GBP_RATES = [BitpayRates.gbp_to_satoshi]
-    JPY_RATES = [BitpayRates.jpy_to_satoshi]
-    CNY_RATES = [BitpayRates.cny_to_satoshi]
-    HKD_RATES = [BitpayRates.hkd_to_satoshi]
-    CAD_RATES = [BitpayRates.cad_to_satoshi]
-    AUD_RATES = [BitpayRates.aud_to_satoshi]
-    NZD_RATES = [BitpayRates.nzd_to_satoshi]
-    RUB_RATES = [BitpayRates.rub_to_satoshi]
-    BRL_RATES = [BitpayRates.brl_to_satoshi]
-    CHF_RATES = [BitpayRates.chf_to_satoshi]
-    SEK_RATES = [BitpayRates.sek_to_satoshi]
-    DKK_RATES = [BitpayRates.dkk_to_satoshi]
-    ISK_RATES = [BitpayRates.isk_to_satoshi]
-    PLN_RATES = [BitpayRates.pln_to_satoshi]
-    KRW_RATES = [BitpayRates.krw_to_satoshi]
-    CLP_RATES = [BitpayRates.clp_to_satoshi]
-    SGD_RATES = [BitpayRates.sgd_to_satoshi]
-    THB_RATES = [BitpayRates.thb_to_satoshi]
-    TWD_RATES = [BitpayRates.twd_to_satoshi]
-    MXN_RATES = [BitpayRates.mxn_to_satoshi]
-    ARS_RATES = [BitpayRates.ars_to_satoshi]
-    COP_RATES = [BitpayRates.cop_to_satoshi]
-    CUP_RATES = [BitpayRates.cup_to_satoshi]
-    PEN_RATES = [BitpayRates.pen_to_satoshi]
-    UYU_RATES = [BitpayRates.uyu_to_satoshi]
-    BOB_RATES = [BitpayRates.bob_to_satoshi]
-    DOP_RATES = [BitpayRates.dop_to_satoshi]
+    USD_RATES = [DogeDogeRates.usd_to_satoshi, BitpayRates.usd_to_satoshi, LivecoinRates.usd_to_satoshi]
+    EUR_RATES = [DogeDogeRates.eur_to_satoshi, BitpayRates.eur_to_satoshi]
+    GBP_RATES = [DogeDogeRates.gbp_to_satoshi, BitpayRates.gbp_to_satoshi]
+    JPY_RATES = [DogeDogeRates.jpy_to_satoshi, BitpayRates.jpy_to_satoshi]
+    CNY_RATES = [DogeDogeRates.cny_to_satoshi, BitpayRates.cny_to_satoshi]
+    HKD_RATES = [DogeDogeRates.hkd_to_satoshi, BitpayRates.hkd_to_satoshi]
+    CAD_RATES = [DogeDogeRates.cad_to_satoshi, BitpayRates.cad_to_satoshi]
+    AUD_RATES = [DogeDogeRates.aud_to_satoshi, BitpayRates.aud_to_satoshi]
+    NZD_RATES = [DogeDogeRates.nzd_to_satoshi, BitpayRates.nzd_to_satoshi]
+    RUB_RATES = [DogeDogeRates.rub_to_satoshi, BitpayRates.rub_to_satoshi]
+    BRL_RATES = [DogeDogeRates.brl_to_satoshi, BitpayRates.brl_to_satoshi]
+    CHF_RATES = [DogeDogeRates.chf_to_satoshi, BitpayRates.chf_to_satoshi]
+    SEK_RATES = [DogeDogeRates.sek_to_satoshi, BitpayRates.sek_to_satoshi]
+    DKK_RATES = [DogeDogeRates.dkk_to_satoshi, BitpayRates.dkk_to_satoshi]
+    ISK_RATES = [DogeDogeRates.isk_to_satoshi, BitpayRates.isk_to_satoshi]
+    PLN_RATES = [DogeDogeRates.pln_to_satoshi, BitpayRates.pln_to_satoshi]
+    KRW_RATES = [DogeDogeRates.krw_to_satoshi, BitpayRates.krw_to_satoshi]
+    CLP_RATES = [DogeDogeRates.clp_to_satoshi, BitpayRates.clp_to_satoshi]
+    SGD_RATES = [DogeDogeRates.sgd_to_satoshi, BitpayRates.sgd_to_satoshi]
+    THB_RATES = [DogeDogeRates.thb_to_satoshi, BitpayRates.thb_to_satoshi]
+    TWD_RATES = [DogeDogeRates.twd_to_satoshi, BitpayRates.twd_to_satoshi]
+    MXN_RATES = [DogeDogeRates.mxn_to_satoshi, BitpayRates.mxn_to_satoshi]
+    ARS_RATES = [DogeDogeRates.ars_to_satoshi, BitpayRates.ars_to_satoshi]
+    COP_RATES = [DogeDogeRates.cop_to_satoshi, BitpayRates.cop_to_satoshi]
+    CUP_RATES = [DogeDogeRates.cup_to_satoshi, BitpayRates.cup_to_satoshi]
+    PEN_RATES = [DogeDogeRates.pen_to_satoshi, BitpayRates.pen_to_satoshi]
+    UYU_RATES = [DogeDogeRates.uyu_to_satoshi, BitpayRates.uyu_to_satoshi]
+    BOB_RATES = [DogeDogeRates.bob_to_satoshi, BitpayRates.bob_to_satoshi]
+    DOP_RATES = [DogeDogeRates.dop_to_satoshi, BitpayRates.dop_to_satoshi]
     
     
 
