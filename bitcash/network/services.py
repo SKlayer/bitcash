@@ -249,6 +249,219 @@ class BitcoinDotComAPI():
         r = requests.get(cls.TEST_TX_PUSH_API.format(tx_hex))
         return True if r.status_code == 200 else False
 
+class IFBlockAPI():
+    """ fchapi.ifwallet.com API """
+    MAIN_ENDPOINT = 'https://bchapi.ifwallet.com:8222/api/'
+    MAIN_ADDRESS_API = MAIN_ENDPOINT + 'address/{}/'
+    MAIN_UNSPENT_API = MAIN_ENDPOINT + 'address/utxo/list/'
+    MAIN_TX_PUSH_API = MAIN_ENDPOINT + 'tool/tx/broadcast/'
+    MAIN_TX_API = MAIN_ENDPOINT + 'tx/{}/'
+    MAIN_TX_AMOUNT_API = MAIN_TX_API
+    MAIN_RAW_API = MAIN_TX_API
+
+
+    TX_PUSH_PARAM = 'rawtx'
+
+    TEST_ENDPOINT = 'https://tbchapi.ifwallet.com:8222/'
+    TEST_ADDRESS_API = TEST_ENDPOINT + 'address/{}/'
+    TEST_UNSPENT_API = TEST_ENDPOINT + 'address/utxo/list/'
+    TEST_TX_PUSH_API = TEST_ENDPOINT + 'tool/tx/broadcast/'
+    TEST_TX_API = TEST_ENDPOINT + 'tx/{}/'
+    TEST_TX_AMOUNT_API = TEST_TX_API
+    TEST_RAW_API = MAIN_TX_API
+    @classmethod
+    def get_tx_script(cls, txid, address):
+        r = requests.get(cls.MAIN_TX_API.format(txid),
+                         timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        response = r.json(parse_float=Decimal)["data"]
+        print(response)
+        for tx in response["vout"]:
+            if address in tx["addrs"]:
+                return tx["script_hex"]
+
+    @classmethod
+    def get_balance(cls, address):
+        r = requests.get(cls.MAIN_ADDRESS_API.format(address),
+                         timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        data = r.json()
+        balance = data["data"]['balance']
+        return balance
+
+    @classmethod
+    def get_balance_testnet(cls, address):
+        r = requests.get(cls.TEST_ADDRESS_API.format(address),
+                         timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        data = r.json()
+        balance = data["data"]['balance']
+        return balance
+
+    @classmethod
+    def get_transactions(cls, address):
+        r = requests.get(cls.MAIN_ADDRESS_API.format(address),
+                         timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        return r.json()["data"]['tx_count']
+
+    @classmethod
+    def get_transactions_testnet(cls, address):
+        r = requests.get(cls.TEST_ADDRESS_API.format(address),
+                         timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        return r.json()["data"]['tx_count']
+
+    @classmethod
+    def get_transaction(cls, txid):
+        r = requests.get(cls.MAIN_TX_API.format(txid),
+                         timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        response = r.json(parse_float=Decimal)["data"]
+
+        tx = Transaction(response['txid'], response['height'],
+                         (Decimal(response['in_value'])
+                          ).normalize(),
+                         (Decimal(response['out_value'])
+                          ).normalize(),
+                         (Decimal(response['fee'])).normalize())
+
+        for txin in response['vin']:
+            part = TxPart(txin['addrs'],
+                          txin['value'],
+                          txin['script'])
+            tx.add_input(part)
+
+        for txout in response['vout']:
+            addr = None
+            if 'addrs' in txout and txout['addrs'] != [""]:
+                addr = txout['addrs'][0]
+
+            part = TxPart(addr,
+                          (Decimal(txout['value'])
+                           ).normalize(),
+                          txout['script'])
+            tx.add_output(part)
+
+        return tx
+
+    @classmethod
+    def get_transaction_testnet(cls, txid):
+        r = requests.get(cls.TEST_TX_API.format(txid),
+                         timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        response = r.json(parse_float=Decimal)["data"]
+
+        tx = Transaction(response['txid'], response['height'],
+                         (Decimal(response['in_value'])
+                          ).normalize(),
+                         (Decimal(response['out_value'])
+                          ).normalize(),
+                         (Decimal(response['fee']) * BCH_TO_SAT_MULTIPLIER).normalize())
+
+        for txin in response['vin']:
+            part = TxPart(txin['addrs'],
+                          txin['value'],
+                          txin['script'])
+            tx.add_input(part)
+
+        for txout in response['vout']:
+            addr = None
+            if 'addrs' in txout and txout['addrs'] != [""]:
+                addr = txout['addrs'][0]
+
+            part = TxPart(addr,
+                          (Decimal(txout['value'])).normalize(),
+                          txout['script'])
+            tx.add_output(part)
+
+        return tx
+
+    @classmethod
+    def get_tx_amount(cls, txid, txindex):
+        r = requests.get(cls.MAIN_TX_AMOUNT_API.format(
+            txid), timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        response = r.json(parse_float=Decimal)["data"]
+        return response['vout'][txindex]['value']
+
+    @classmethod
+    def get_tx_amount_testnet(cls, txid, txindex):
+        r = requests.get(cls.MAIN_TX_AMOUNT_API.format(
+            txid), timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        response = r.json(parse_float=Decimal)["data"]
+        return response['vout'][txindex]['value']
+
+    @classmethod
+    def get_unspent(cls, address):
+        req_args = {
+            "addresses": address,
+            "confirmations": -1
+        }
+
+        r = requests.get(cls.MAIN_UNSPENT_API,
+                         timeout=DEFAULT_TIMEOUT,data=req_args)
+        r.raise_for_status()  # pragma: no cover
+        return [
+            Unspent(tx['value'],
+                    tx['confirmations'],
+                    None,
+                    tx['txid'],
+                    tx['vout'])
+            for tx in r.json()['data']
+
+        ]
+
+    @classmethod
+    def get_unspent_testnet(cls, address):
+        req_args = {
+            "addresses": address,
+            "confirmations": -1
+        }
+        r = requests.get(cls.TEST_UNSPENT_API,data=req_args,
+                         timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        #cls.get_transaction("20293ed2b52726baeb9b2b5b60f5dd50f5b294c824d98a46b4068d5cdbedfc3f")
+
+
+        return [
+            Unspent(tx['value'],
+                    tx['confirmations'],
+                    None,
+                    tx['txid'],
+                    tx['vout'])
+            for tx in r.json()['data']
+
+        ]
+
+    @classmethod
+    def get_raw_transaction(cls, txid):
+        r = requests.get(cls.MAIN_RAW_API.format(
+            txid), timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        response = r.json(parse_float=Decimal)["data"]
+        return response
+
+    @classmethod
+    def get_raw_transaction_testnet(cls, txid):
+        r = requests.get(cls.TEST_RAW_API.format(
+            txid), timeout=DEFAULT_TIMEOUT)
+        r.raise_for_status()  # pragma: no cover
+        response = r.json(parse_float=Decimal)["data"]
+        return response
+
+    @classmethod
+    def broadcast_tx(cls, tx_hex):  # pragma: no cover
+        r = requests.post(cls.MAIN_TX_PUSH_API, data={"raw_tx": tx_hex})
+        print(r.json(),tx_hex)
+        return True if "txid" in r.json()["data"] else False
+
+    @classmethod
+    def broadcast_tx_testnet(cls, tx_hex):  # pragma: no cover
+
+        r = requests.post(cls.TEST_TX_PUSH_API,data={"raw_tx": tx_hex})
+        return True if "txid" in r.json()["data"] else False
 
 class BitcoreAPI(InsightAPI):
     """ Insight API v8 """
@@ -360,18 +573,25 @@ class NetworkAPI:
                       requests.exceptions.Timeout,
                       requests.exceptions.ReadTimeout)
 
-    GET_BALANCE_MAIN = [BitcoinDotComAPI.get_balance,
+    GET_BALANCE_MAIN = [IFBlockAPI.get_balance,
+                        BitcoinDotComAPI.get_balance,
                         BitcoreAPI.get_balance]
-    GET_TRANSACTIONS_MAIN = [BitcoinDotComAPI.get_transactions,
-                             BitcoreAPI.get_transactions]
-    GET_UNSPENT_MAIN = [BitcoinDotComAPI.get_unspent,
+    GET_TRANSACTIONS_MAIN = [IFBlockAPI.get_transactions,
+                        BitcoinDotComAPI.get_transactions,
+                        BitcoreAPI.get_transactions]
+    GET_UNSPENT_MAIN = [IFBlockAPI.get_unspent,
+                        BitcoinDotComAPI.get_unspent,
                         BitcoreAPI.get_unspent]
-    BROADCAST_TX_MAIN = [BitcoinDotComAPI.broadcast_tx,
+    BROADCAST_TX_MAIN = [IFBlockAPI.broadcast_tx,
+                         BitcoinDotComAPI.broadcast_tx,
                          BitcoreAPI.broadcast_tx]
-    GET_TX_MAIN = [BitcoinDotComAPI.get_transaction]
-    GET_TX_AMOUNT_MAIN = [BitcoinDotComAPI.get_tx_amount,
+    GET_TX_MAIN = [IFBlockAPI.get_transaction,
+                   BitcoinDotComAPI.get_transaction]
+    GET_TX_AMOUNT_MAIN = [IFBlockAPI.get_tx_amount,
+                          BitcoinDotComAPI.get_tx_amount,
                           BitcoreAPI.get_tx_amount]
-    GET_RAW_TX_MAIN = [BitcoinDotComAPI.get_raw_transaction]
+    GET_RAW_TX_MAIN = [IFBlockAPI.get_raw_transaction,
+                       BitcoinDotComAPI.get_raw_transaction]
 
     GET_BALANCE_TEST = [BitcoinDotComAPI.get_balance_testnet,
                         BitcoreAPI.get_balance_testnet]
