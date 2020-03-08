@@ -128,12 +128,11 @@ class BitcoinDotComAPI():
         r.raise_for_status()  # pragma: no cover
         response = r.json(parse_float=Decimal)
 
-        tx = Transaction(response['txid'], response['blockheight'],
+        tx = Transaction(response['txid'],
                          (Decimal(response['valueIn']) *
                           BCH_TO_SAT_MULTIPLIER).normalize(),
                          (Decimal(response['valueOut']) *
-                          BCH_TO_SAT_MULTIPLIER).normalize(),
-                         (Decimal(response['fees']) * BCH_TO_SAT_MULTIPLIER).normalize())
+                          BCH_TO_SAT_MULTIPLIER).normalize())
 
         for txin in response['vin']:
             part = TxPart(txin['cashAddress'],
@@ -161,12 +160,11 @@ class BitcoinDotComAPI():
         r.raise_for_status()  # pragma: no cover
         response = r.json(parse_float=Decimal)
 
-        tx = Transaction(response['txid'], response['blockheight'],
+        tx = Transaction(response['txid'],
                          (Decimal(response['valueIn']) *
                           BCH_TO_SAT_MULTIPLIER).normalize(),
                          (Decimal(response['valueOut']) *
-                          BCH_TO_SAT_MULTIPLIER).normalize(),
-                         (Decimal(response['fees']) * BCH_TO_SAT_MULTIPLIER).normalize())
+                          BCH_TO_SAT_MULTIPLIER).normalize())
 
         for txin in response['vin']:
             part = TxPart(txin['cashAddress'],
@@ -319,12 +317,11 @@ class IFBlockAPI():
         r.raise_for_status()  # pragma: no cover
         response = r.json(parse_float=Decimal)["data"]
 
-        tx = Transaction(response['txid'], response['height'],
+        tx = Transaction(response['txid'],
                          (Decimal(response['in_value'])
                           ).normalize(),
                          (Decimal(response['out_value'])
-                          ).normalize(),
-                         (Decimal(response['fee'])).normalize())
+                          ).normalize())
 
         for txin in response['vin']:
             part = TxPart(txin['addrs'],
@@ -352,12 +349,11 @@ class IFBlockAPI():
         r.raise_for_status()  # pragma: no cover
         response = r.json(parse_float=Decimal)["data"]
 
-        tx = Transaction(response['txid'], response['height'],
+        tx = Transaction(response['txid'],
                          (Decimal(response['in_value'])
                           ).normalize(),
                          (Decimal(response['out_value'])
-                          ).normalize(),
-                         (Decimal(response['fee']) * BCH_TO_SAT_MULTIPLIER).normalize())
+                          ).normalize())
 
         for txin in response['vin']:
             part = TxPart(txin['addrs'],
