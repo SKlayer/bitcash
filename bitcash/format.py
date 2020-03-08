@@ -111,9 +111,9 @@ def wif_checksum_check(wif):
 
 def public_key_to_address(public_key, prefix='main'):
     if prefix == 'test':
-        prefix = TEST_PUBKEY_HASH
+        prefix = 'P2PKH-TESTNET'
     elif prefix == 'main':
-        prefix = MAIN_PUBKEY_HASH
+        prefix = 'P2PKH'
     else:
         raise ValueError('Invalid prefix.')
 
