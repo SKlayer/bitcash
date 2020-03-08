@@ -893,4 +893,3 @@ def satoshi_to_currency_cached(num, currency):
             rounding=ROUND_DOWN
         ).normalize()
     )
-

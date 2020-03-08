@@ -56,9 +56,9 @@ def get_version(address):
                          'testnet P2PKH address.'.format(address.version))
 
 
-def bytes_to_wif(private_key, version='main', compressed=False):
+def bytes_to_wif(private_key, prefix='main', compressed=False):
 
-    if version == 'test':
+    if prefix == 'test':
         prefix = TEST_PRIVATE_KEY
     else:
         prefix = MAIN_PRIVATE_KEY
@@ -77,23 +77,23 @@ def wif_to_bytes(wif):
 
     private_key = b58decode_check(wif)
 
-    version = private_key[:1]
+    prefix = private_key[:1]
 
-    if version == MAIN_PRIVATE_KEY:
-        version = 'main'
-    elif version == TEST_PRIVATE_KEY:
-        version = 'test'
+    if prefix == MAIN_PRIVATE_KEY:
+        prefix = 'main'
+    elif prefix == TEST_PRIVATE_KEY:
+        prefix = 'test'
     else:
         raise ValueError('{} does not correspond to a mainnet nor '
-                         'testnet address.'.format(version))
+                         'testnet address.'.format(prefix))
 
-    # Remove version byte and, if present, compression flag.
+    # Remove prefix byte and, if present, compression flag.
     if len(wif) == 52 and private_key[-1] == 1:
         private_key, compressed = private_key[1:-1], True
     else:
         private_key, compressed = private_key[1:], False
 
-    return private_key, compressed, version
+    return private_key, compressed, prefix
 
 
 def wif_checksum_check(wif):
@@ -109,20 +109,21 @@ def wif_checksum_check(wif):
     return False
 
 
-def public_key_to_address(public_key, version='main'):
-    if version == 'test':
-        version = 'P2PKH-TESTNET'
-    elif version == 'main':
-        version = 'P2PKH'
+def public_key_to_address(public_key, prefix='main'):
+    if prefix == 'test':
+        prefix = TEST_PUBKEY_HASH
+    elif prefix == 'main':
+        prefix = MAIN_PUBKEY_HASH
     else:
-        raise ValueError('Invalid version.')
+        raise ValueError('Invalid prefix.')
+
     # 33 bytes compressed, 65 uncompressed.
     length = len(public_key)
     if length not in (33, 65):
         raise ValueError('{} is an invalid length for a public key.'.format(length))
 
     payload = list(ripemd160_sha256(public_key))
-    address = cashaddress.Address(payload=payload, version=version)
+    address = cashaddress.Address(payload=payload, version=prefix)
     return address.cash_address()
 
 

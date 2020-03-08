@@ -12,21 +12,44 @@ from bitcash.transaction import (
     calc_txid, create_p2pkh_transaction, sanitize_tx_data,
     OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY, OP_HASH160, OP_PUSH_20
     )
+from bitcash import op_return
 
 
-def wif_to_key(wif):
-    private_key_bytes, compressed, version = wif_to_bytes(wif)
 
-    if version == 'main':
-        if compressed:
-            return PrivateKey.from_bytes(private_key_bytes)
+def wif_to_key(wif, network=None):
+    """This function can read the 'prefix' byte of a wif and instatiate the appropriate PrivateKey object.
+    see: https://en.bitcoin.it/wiki/List_of_address_prefixes
+    The prefix byte is the same for testnet and scaling-testnet.
+    So to use scaling-testnet you must give as a parameter: network='stn'
+    :param wif: A private key serialized to the Wallet Import Format.
+    :type wif: ``str``
+    :param network: 'main', 'test' or 'stn'
+    :type network: ``str``
+    """
+    private_key_bytes, compressed, prefix = wif_to_bytes(wif)
+
+    wif_network_mismatch = "WIF prefix: '{}' does not match network: '{}'".format(prefix, network)
+
+    if network == 'main':
+        if prefix != 'main':
+            raise ValueError(wif_network_mismatch)
+    elif network in ['test', 'stn']:
+        if prefix != 'test':
+            raise ValueError(wif_network_mismatch)
+    elif network is None:
+        if prefix == 'main':
+            network = 'main'
+        elif prefix == 'test':
+            network = 'test'
         else:
-            return PrivateKey(wif)
+            raise Exception('bitcash issue, please open a bug report!')
     else:
-        if compressed:
-            return PrivateKeyTestnet.from_bytes(private_key_bytes)
-        else:
-            return PrivateKeyTestnet(wif)
+        raise ValueError('network must be one of: main, test, stn')
+
+    if compressed:
+        return PrivateKey.from_bytes(private_key_bytes)
+    else:
+        return PrivateKey(wif, network=network)
 
 
 class BaseKey:
@@ -36,7 +59,7 @@ class BaseKey:
 
     :param wif: A private key serialized to the Wallet Import Format. If the
                 argument is not supplied, a new private key will be created.
-                The WIF compression flag will be adhered to, but the version
+                The WIF compression flag will be adhered to, but the prefix
                 byte is disregarded. Compression will be used by all new keys.
     :type wif: ``str``
     :raises TypeError: If ``wif`` is not a ``str``.
@@ -44,7 +67,7 @@ class BaseKey:
     def __init__(self, wif=None):
         if wif:
             if isinstance(wif, str):
-                private_key_bytes, compressed, version = wif_to_bytes(wif)
+                private_key_bytes, compressed, prefix = wif_to_bytes(wif)
                 self._pk = ECPrivateKey(private_key_bytes)
             elif isinstance(wif, ECPrivateKey):
                 self._pk = wif
@@ -125,7 +148,9 @@ class BaseKey:
 
 
 class PrivateKey(BaseKey):
-    """This class represents a BitcoinCash private key. ``Key`` is an alias.
+    """This class represents a Bitcoin Cash private key. ``Key`` is an alias.
+    Select from network = 'main', 'test' or 'stn' for mainnet, testnet or scaling-testnet respectively.
+    Defaults to mainnet.
 
     :param wif: A private key serialized to the Wallet Import Format. If the
                 argument is not supplied, a new private key will be created.
@@ -135,7 +160,7 @@ class PrivateKey(BaseKey):
     :raises TypeError: If ``wif`` is not a ``str``.
     """
 
-    def __init__(self, wif=None):
+    def __init__(self, wif=None, network='main'):
         super().__init__(wif=wif)
 
         self._address = None
@@ -145,11 +170,21 @@ class PrivateKey(BaseKey):
         self.unspents = []
         self.transactions = []
 
+        # Standard network_api_main/test/stn objects are instantiated at top of this file as globals.
+        # Avoids multiple unnecessary instances of these in the case of many Keys
+        if network == 'main':
+            self.prefix = 'main'
+        elif network == 'test':
+            self.prefix = 'test'
+        elif network == 'stn':
+            # Scaling-testnet has the same "prefix" as testnet (https://bitcoinscaling.io/)
+            self.prefix = 'test'
+
     @property
     def address(self):
         """The public address you share with others to receive funds."""
         if self._address is None:
-            self._address = public_key_to_address(self._public_key, version='main')
+            self._address = public_key_to_address(self._public_key, prefix=self.prefix)
 
         return self._address
 
@@ -163,7 +198,7 @@ class PrivateKey(BaseKey):
     def to_wif(self):
         return bytes_to_wif(
             self._pk.secret,
-            version='main',
+            prefix=self.prefix,
             compressed=self.is_compressed()
         )
 
@@ -177,7 +212,7 @@ class PrivateKey(BaseKey):
         return satoshi_to_currency_cached(self.balance, currency)
 
     def get_balance(self, currency='satoshi'):
-        """Fetches the current balance by calling
+        """Fetches the current balance.
         :func:`~bitcash.PrivateKey.get_balance` and returns it using
         :func:`~bitcash.PrivateKey.balance_as`.
 
@@ -206,6 +241,14 @@ class PrivateKey(BaseKey):
         self.transactions[:] = NetworkAPI.get_transactions(self.address)
         return self.transactions
 
+    def get_transaction(self, txid):
+        """Gets a single transaction.
+        :param txid: txid for transaction you want information about
+        :type txid: ``str``
+        """
+        transaction = NetworkAPI.get_transaction(txid)
+        return transaction
+
     def create_transaction(self, outputs, fee=None, leftover=None, combine=True,
                            message=None, unspents=None, custom_pushdata=False):  # pragma: no cover
         """Creates a signed P2PKH transaction.
@@ -217,9 +260,7 @@ class PrivateKey(BaseKey):
                         must be :ref:`supported <supported currencies>`.
         :type outputs: ``list`` of ``tuple``
         :param fee: The number of satoshi per byte to pay to miners. By default
-                    Bitcash will poll `<https://bitcoincashfees.earn.com>`_ and use a fee
-                    that will allow your transaction to be confirmed as soon as
-                    possible.
+                    BitCash will use a fee of 1 sat/byte.
         :type fee: ``int``
         :param leftover: The destination that will receive any change from the
                          transaction. By default Bitcash will send any change to
@@ -253,8 +294,138 @@ class PrivateKey(BaseKey):
 
         return create_p2pkh_transaction(self, unspents, outputs, custom_pushdata=custom_pushdata)
 
+    def create_op_return_tx(self, list_of_pushdata, outputs=None, fee=1, unspents=None, leftover=None, combine=False):
+        """Creates a rawtx with OP_RETURN metadata ready for broadcast.
+
+        Parameters
+        ----------
+        list_of_pushdata : a list of tuples (pushdata, encoding) where encoding is either "hex" or "utf-8"
+        fee : sat/byte (defaults to 1 satoshi per byte)
+
+        Returns
+        -------
+        rawtx
+
+        Examples
+        --------
+
+        list_of_pushdata =  [('6d01', 'hex'),
+                            ('bitPUSHER', 'utf-8')]
+
+        as per memo.cash protocol @ https://memo.cash/protocol this results in a "Set name" action to "bitPUSHER"
+
+        :param outputs: A sequence of outputs you wish to send in the form
+                        ``(destination, amount, currency)``. The amount can
+                        be either an int, float, or string as long as it is
+                        a valid input to ``decimal.Decimal``. The currency
+                        must be :ref:`supported <supported currencies>`.
+        :type outputs: ``list`` of ``tuple``
+        :param fee: The number of satoshi per byte to pay to miners. By default
+                    BitCash will use a fee of 1 sat/byte
+        :type fee: ``int``
+        :param leftover: The destination that will receive any change from the
+                         transaction. By default BitCash will send any change to
+                         the same address you sent from.
+        :type leftover: ``str``
+        :param combine: Whether or not BitSV should use all available UTXOs to
+                        make future transactions smaller and therefore reduce
+                        fees. By default BitCash will consolidate UTXOs.
+        :type combine: ``bool``
+        :param unspents: The UTXOs to use as the inputs. By default BitSV will
+                         communicate with the blockchain itself.
+        :type unspents: ``list`` of :class:`~bitcash.network.meta.Unspent`
+        :param list_of_pushdata: List indicating pushdata to be included in op_return as e.g.:
+                                [('6d01', 'hex'),
+                                 ('hello', 'utf-8')]
+        :type list_of_pushdata:`list` of `tuples`
+        """
+        if not outputs:
+            outputs = []
+
+        pushdata = op_return.create_pushdata(list_of_pushdata)
+        rawtx = self.create_transaction(outputs,
+                                        fee=fee,
+                                        message=pushdata,
+                                        custom_pushdata=True,
+                                        combine=combine,
+                                        unspents=unspents or self.unspents,
+                                        leftover=leftover or self.address)
+
+        return rawtx
+
+    def send_op_return(self, list_of_pushdata, outputs=None, fee=1, unspents=None, leftover=None, combine=False):
+        """Sends a rawtx with OP_RETURN metadata ready for broadcast.
+
+        Parameters
+        ----------
+        list_of_pushdata : a list of tuples (pushdata, encoding) where encoding is either "hex" or "utf-8"
+        fee : sat/byte (defaults to 1 satoshi per byte)
+
+        Returns
+        -------
+        rawtx
+
+        Examples
+        --------
+
+        list_of_pushdata =  [('6d01', 'hex'),
+                            ('bitPUSHER', 'utf-8')]
+
+        as per memo.cash protocol @ https://memo.cash/protocol this results in a "Set name" action to "bitPUSHER"
+
+        :param outputs: A sequence of outputs you wish to send in the form
+                        ``(destination, amount, currency)``. The amount can
+                        be either an int, float, or string as long as it is
+                        a valid input to ``decimal.Decimal``. The currency
+                        must be :ref:`supported <supported currencies>`.
+        :type outputs: ``list`` of ``tuple``
+        :param fee: The number of satoshi per byte to pay to miners. By default
+                    BitSV will use a fee of 1 sat/byte
+        :type fee: ``int``
+        :param leftover: The destination that will receive any change from the
+                         transaction. By default BitSV will send any change to
+                         the same address you sent from.
+        :type leftover: ``str``
+        :param combine: Whether or not BitSV should use all available UTXOs to
+                        make future transactions smaller and therefore reduce
+                        fees. By default BitSV will consolidate UTXOs.
+        :type combine: ``bool``
+        :param unspents: The UTXOs to use as the inputs. By default BitSV will
+                         communicate with the blockchain itself.
+        :type unspents: ``list`` of :class:`~bitsv.network.meta.Unspent`
+        :param list_of_pushdata: List indicating pushdata to be included in op_return as e.g.:
+                                [('6d01', 'hex'),
+                                 ('hello', 'utf-8')]
+        :type list_of_pushdata:`list` of `tuples`
+        """
+        if not outputs:
+            outputs = []
+
+        self.get_unspents()
+        pushdata = op_return.create_pushdata(list_of_pushdata)
+        tx_hex = self.create_transaction(outputs=outputs, fee=fee, message=pushdata, custom_pushdata=True,
+                                         combine=combine, unspents=unspents, leftover=leftover
+                                         )
+
+        NetworkAPI.broadcast_tx(tx_hex)
+
+        return calc_txid(tx_hex)
+
+    def sweep(self, receiving_address, combine=True, message=None, unspents=None,
+              custom_pushdata=False):
+        """Send all bitcoins associated with private key to the receiving address.
+
+        If unspents are specified, it will only send the remainder from these utxos to the
+        receiving address (after tx creation).
+
+        The 'low-level' / more versatile way of doing this is to pass this address to the
+        "leftover" parameter of PrivateKey.send()"""
+
+        return self.send(outputs=[], leftover=receiving_address, combine=combine, message=message,
+                         unspents=unspents, custom_pushdata=False)
+
     def send(self, outputs, fee=None, leftover=None, combine=True,
-             message=None, unspents=None):  # pragma: no cover
+             message=None, unspents=None, custom_pushdata=False):  # pragma: no cover
         """Creates a signed P2PKH transaction and attempts to broadcast it on
         the blockchain. This accepts the same arguments as
         :func:`~bitcash.PrivateKey.create_transaction`.
@@ -288,18 +459,18 @@ class PrivateKey(BaseKey):
         :returns: The transaction ID.
         :rtype: ``str``
         """
-
+        self.get_unspents()
         tx_hex = self.create_transaction(
-            outputs, fee=fee, leftover=leftover, combine=combine, message=message, unspents=unspents
+            outputs, fee=fee, leftover=leftover, combine=combine,
+            message=message, unspents=unspents, custom_pushdata=custom_pushdata
         )
 
         NetworkAPI.broadcast_tx(tx_hex)
 
         return calc_txid(tx_hex)
 
-    @classmethod
-    def prepare_transaction(cls, address, outputs, compressed=True, fee=None, leftover=None,
-                            combine=True, message=None, unspents=None):  # pragma: no cover
+    def prepare_transaction(self, address, outputs, compressed=True, fee=None, leftover=None,
+                            combine=True, message=None, unspents=None, custom_pushdata=False):  # pragma: no cover
         """Prepares a P2PKH transaction for offline signing.
 
         :param address: The address the funds will be sent from.
@@ -343,7 +514,8 @@ class PrivateKey(BaseKey):
             leftover or address,
             combine=combine,
             message=message,
-            compressed=compressed
+            compressed=compressed,
+            custom_pushdata=custom_pushdata
         )
 
         data = {
