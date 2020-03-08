@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from bitcash.network import currency_to_satoshi
 from bitcash.network.meta import Unspent
-from bitcash.network.transaction import Transaction, TxPart
+from bitcash.network.transaction import Transaction,TxPart
 
 DEFAULT_TIMEOUT = 30
 
