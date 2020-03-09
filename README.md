@@ -1,7 +1,7 @@
 <h3 align="center">BitCash CN</h3>
 <h4 align="center">Bitcoin Cash made easy</h4>
 
-Forked from [Ofek's awesome Bit library](https://github.com/ofek/bit).
+Forked from [sporestack's Bitcash library](https://github.com/sporestack/bitcash).
 
 **BitCash is so easy to use, in fact, you can do this:**
 
