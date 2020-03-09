@@ -37,7 +37,7 @@ OP_PUSHDATA2 = b'\x4d'
 OP_PUSHDATA4 = b'\x4e'
 
 MESSAGE_LIMIT = 220
-
+DUST_LIMIT = 546
 
 class TxIn:
     __slots__ = ('script', 'script_len', 'txid', 'txindex', 'amount')
@@ -203,7 +203,7 @@ def sanitize_tx_data(unspents, outputs, fee, leftover, combine=True, message=Non
     remaining = total_in - total_out
 
 
-    if remaining > 0:
+    if remaining > DUST_LIMIT:
         outputs.append((leftover, remaining))
     elif remaining < 0:
         raise InsufficientFunds('Balance {} is less than {} (including '
