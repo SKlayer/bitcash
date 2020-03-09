@@ -289,7 +289,7 @@ def create_p2pkh_transaction(private_key, unspents, outputs, custom_pushdata=Fal
     # Optimize for speed, not memory, by pre-computing values.
     inputs = []
     for unspent in unspents:
-        if not unspent.script:
+        if unspent.script is not None:
             script = hex_to_bytes(unspent.script)
             script_len = int_to_varint(len(script))
         else:
