@@ -4,10 +4,10 @@ import logging
 
 import pytest
 
-from bitcash.crypto import ECPrivateKey
-from bitcash.curve import Point
-from bitcash.format import verify_sig
-from bitcash.wallet import BaseKey, Key, PrivateKey, PrivateKeyTestnet, wif_to_key
+from bitcashcn.crypto import ECPrivateKey
+from bitcashcn.curve import Point
+from bitcashcn.format import verify_sig
+from bitcashcn.wallet import BaseKey, Key, PrivateKey, PrivateKeyTestnet, wif_to_key
 from .samples import (
     PRIVATE_KEY_BYTES, PRIVATE_KEY_DER,
     PRIVATE_KEY_HEX, PRIVATE_KEY_NUM, PRIVATE_KEY_PEM,

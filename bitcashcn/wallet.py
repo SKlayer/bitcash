@@ -1,18 +1,18 @@
 import json
 
-from bitcash.crypto import ECPrivateKey
-from bitcash.curve import Point
-from bitcash.format import (
+from bitcashcn.crypto import ECPrivateKey
+from bitcashcn.curve import Point
+from bitcashcn.format import (
     bytes_to_wif, public_key_to_address, public_key_to_coords, wif_to_bytes,
     address_to_public_key_hash
 )
-from bitcash.network import NetworkAPI, get_fee, satoshi_to_currency_cached
-from bitcash.network.meta import Unspent
-from bitcash.transaction import (
+from bitcashcn.network import NetworkAPI, get_fee, satoshi_to_currency_cached
+from bitcashcn.network.meta import Unspent
+from bitcashcn.transaction import (
     calc_txid, create_p2pkh_transaction, sanitize_tx_data,
     OP_CHECKSIG, OP_DUP, OP_EQUALVERIFY, OP_HASH160, OP_PUSH_20
     )
-from bitcash import op_return
+from bitcashcn import op_return
 
 
 
@@ -42,7 +42,7 @@ def wif_to_key(wif, network=None):
         elif prefix == 'test':
             network = 'test'
         else:
-            raise Exception('bitcash issue, please open a bug report!')
+            raise Exception('bitcashcn issue, please open a bug report!')
     else:
         raise ValueError('network must be one of: main, test, stn')
 
@@ -213,8 +213,8 @@ class PrivateKey(BaseKey):
 
     def get_balance(self, currency='satoshi'):
         """Fetches the current balance.
-        :func:`~bitcash.PrivateKey.get_balance` and returns it using
-        :func:`~bitcash.PrivateKey.balance_as`.
+        :func:`~bitcashcn.PrivateKey.get_balance` and returns it using
+        :func:`~bitcashcn.PrivateKey.balance_as`.
 
         :param currency: One of the :ref:`supported currencies`.
         :type currency: ``str``
@@ -428,7 +428,7 @@ class PrivateKey(BaseKey):
              message=None, unspents=None, custom_pushdata=False):  # pragma: no cover
         """Creates a signed P2PKH transaction and attempts to broadcast it on
         the blockchain. This accepts the same arguments as
-        :func:`~bitcash.PrivateKey.create_transaction`.
+        :func:`~bitcashcn.PrivateKey.create_transaction`.
 
         :param outputs: A sequence of outputs you wish to send in the form
                         ``(destination, amount, currency)``. The amount can
@@ -529,7 +529,7 @@ class PrivateKey(BaseKey):
         """Creates a signed P2PKH transaction using previously prepared
         transaction data.
 
-        :param tx_data: Output of :func:`~bitcash.PrivateKey.prepare_transaction`.
+        :param tx_data: Output of :func:`~bitcashcn.PrivateKey.prepare_transaction`.
         :type tx_data: ``str``
         :returns: The signed transaction as hex.
         :rtype: ``str``
@@ -645,8 +645,8 @@ class PrivateKeyTestnet(BaseKey):
 
     def get_balance(self, currency='satoshi'):
         """Fetches the current balance by calling
-        :func:`~bitcash.PrivateKeyTestnet.get_unspents`.
-        We do not use `~bitcash.PrivateKeyTestnet.balance_as` as Testnet coins
+        :func:`~bitcashcn.PrivateKeyTestnet.get_unspents`.
+        We do not use `~bitcashcn.PrivateKeyTestnet.balance_as` as Testnet coins
         do not have a fiat (e.g. USD) value.
 
         :param currency: One of the :ref:`supported currencies`.
@@ -725,7 +725,7 @@ class PrivateKeyTestnet(BaseKey):
              message=None, unspents=None):
         """Creates a signed P2PKH transaction and attempts to broadcast it on
         the testnet blockchain. This accepts the same arguments as
-        :func:`~bitcash.PrivateKeyTestnet.create_transaction`.
+        :func:`~bitcashcn.PrivateKeyTestnet.create_transaction`.
 
         :param outputs: A sequence of outputs you wish to send in the form
                         ``(destination, amount, currency)``. The amount can
@@ -825,7 +825,7 @@ class PrivateKeyTestnet(BaseKey):
         """Creates a signed P2PKH transaction using previously prepared
         transaction data.
 
-        :param tx_data: Output of :func:`~bitcash.PrivateKeyTestnet.prepare_transaction`.
+        :param tx_data: Output of :func:`~bitcashcn.PrivateKeyTestnet.prepare_transaction`.
         :type tx_data: ``str``
         :returns: The signed transaction as hex.
         :rtype: ``str``

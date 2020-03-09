@@ -17,7 +17,7 @@ Forked from [Ofek's awesome Bit library](https://github.com/ofek/bit).
 
 
 ```python
->>> from bitcash import Key
+>>> from bitcashcn import Key
 >>>
 >>> k = Key()
 >>> k.address

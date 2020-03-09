@@ -1,4 +1,4 @@
-from bitcash.utils import is_valid_hex, asm_to_list
+from bitcashcn.utils import is_valid_hex, asm_to_list
 
 class Transaction:
     """Represents a transaction returned from the network."""

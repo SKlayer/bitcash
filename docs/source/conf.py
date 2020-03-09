@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# bitcash documentation build configuration file, created by
+# bitcashcn documentation build configuration file, created by
 # sphinx-quickstart on Mon Feb 20 15:41:44 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -21,7 +21,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-from bitcash import __version__
+from bitcashcn import __version__
 
 
 # -- General configuration ------------------------------------------------
@@ -51,7 +51,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'bitcash'
+project = 'bitcashcn'
 copyright = '2019, BitCash'
 author = 'Teran McKinney'
 
@@ -78,7 +78,7 @@ html_sidebars = {
 html_theme_options = {
     'show_powered_by': False,
     'github_user': 'sporestack',
-    'github_repo': 'bitcash',
+    'github_repo': 'bitcashcn',
     'github_banner': True,
     'show_related': False
 }
@@ -152,7 +152,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'bitcash.tex', 'bitcash Documentation',
+    (master_doc, 'bitcashcn.tex', 'bitcashcn Documentation',
      'Teran McKinney', 'manual'),
 ]
 
@@ -162,7 +162,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'bitcash', 'bitcash Documentation',
+    (master_doc, 'bitcashcn', 'bitcashcn Documentation',
      [author], 1)
 ]
 
@@ -173,7 +173,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'bitcash', 'bitcash Documentation',
+    (master_doc, 'bitcashcn', 'bitcashcn Documentation',
      author, 'Teran McKinney', 'Bitcoin Cash for Python',
      'Miscellaneous'),
 ]
