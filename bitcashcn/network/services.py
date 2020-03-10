@@ -450,7 +450,6 @@ class IFBlockAPI():
     @classmethod
     def broadcast_tx(cls, tx_hex):  # pragma: no cover
         r = requests.post(cls.MAIN_TX_PUSH_API, data={"raw_tx": tx_hex})
-        print(r.json(),tx_hex)
         return True if "OK" == r.json()["message"] else False
 
     @classmethod
