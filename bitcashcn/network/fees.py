@@ -1,8 +1,8 @@
 # Fee can be increased in case of spike of transaction number.
 # Slow will likely be included in the next block.
-DEFAULT_FEE_FAST = 4
-DEFAULT_FEE_MEDIUM = 2
-DEFAULT_FEE_SLOW = 1
+DEFAULT_FEE_FAST = 2
+DEFAULT_FEE_MEDIUM = 1
+DEFAULT_FEE_SLOW = 0.5
 
 
 FEE_SPEED_FAST = 'fast'
