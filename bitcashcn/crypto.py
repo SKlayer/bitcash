@@ -1,6 +1,10 @@
 from hashlib import new, sha256 as _sha256
-
-from coincurve import PrivateKey as ECPrivateKey, PublicKey as ECPublicKey
+schnorr = False
+try:
+    from freecrypto import PrivateKey as ECPrivateKey, PublicKey as ECPublicKey
+    schnorr = True
+except:
+    from coincurve import PrivateKey as ECPrivateKey, PublicKey as ECPublicKey
 
 
 def sha256(bytestr):

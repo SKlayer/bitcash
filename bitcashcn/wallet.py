@@ -1,6 +1,6 @@
 import json
 
-from bitcashcn.crypto import ECPrivateKey
+from bitcashcn.crypto import ECPrivateKey, schnorr
 from bitcashcn.curve import Point
 from bitcashcn.format import (
     bytes_to_wif, public_key_to_address, public_key_to_coords, wif_to_bytes,
@@ -102,6 +102,8 @@ class BaseKey:
         :returns: A signature compliant with BIP-62.
         :rtype: ``bytes``
         """
+        if schnorr:
+            return self._pk.sign(data,schnorr=True)
         return self._pk.sign(data)
 
     def verify(self, signature, data):

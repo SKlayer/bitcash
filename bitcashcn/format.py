@@ -1,5 +1,10 @@
 from cashaddress import convert as cashaddress
-from coincurve import verify_signature as _vs
+schnorr = False
+try:
+    from freecrypto import verify_signature as _vs
+    schnorr = True
+except:
+    from coincurve import verify_signature as _vs
 
 from bitcashcn.base58 import b58decode_check, b58encode_check
 from bitcashcn.crypto import ripemd160_sha256

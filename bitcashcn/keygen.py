@@ -1,8 +1,12 @@
 import sys
 import time
 from multiprocessing import Event, Process, Queue, Value, cpu_count
-
-from coincurve import Context
+schnorr = False
+try:
+    from freecrypto import Context
+    schnorr = True
+except:
+    from coincurve import Context
 
 from bitcashcn.base58 import BASE58_ALPHABET, b58encode_check
 from bitcashcn.crypto import ECPrivateKey, ripemd160_sha256
